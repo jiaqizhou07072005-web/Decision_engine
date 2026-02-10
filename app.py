@@ -51,7 +51,10 @@ Meaning:
 This lets the same decision tool adapt to different personalities.
 """
 )
-
+unit = st.selectbox(
+    "Unit of measure",
+    ["None", "€", "$", "hours", "points"]
+)
 
 st.header("1) Define Option A")
 st.caption("Option A is the first choice you want to evaluate (e.g., job offer A, investment A, plan A).")
@@ -85,10 +88,7 @@ probs_b_str = st.text_input(
 
 st.header("3) How risk-averse are you?")
 
-unit = st.selectbox(
-    "Unit of measure",
-    ["None", "€", "$", "hours", "points"]
-)
+
 
 risk_aversion = st.slider(
     "Risk aversion (λ)",
