@@ -84,6 +84,12 @@ probs_b_str = st.text_input(
 )
 
 st.header("3) How risk-averse are you?")
+
+unit = st.selectbox(
+    "Unit of measure",
+    ["None", "€", "$", "hours", "points"]
+)
+
 risk_aversion = st.slider(
     "Risk aversion (λ)",
     min_value=0.0,
@@ -144,15 +150,15 @@ if st.button("Compute"):
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### Option A")
-            st.write(f"**Expected Value (EV):** {ev_a:.4f}")
-            st.write(f"**Variance (Var):** {var_a:.4f}")
-            st.write(f"**Risk-adjusted score:** {score_a:.4f}")
+            st.write(f"**Expected Value (EV):** {ev_a:.2f} {unit if unit != 'None' else ''}")
+            st.write(f"**Variance (Var):** {var_a:.2f} {unit if unit != 'None' else ''}")
+            st.write(f"**Risk-adjusted score:** {score_a:.2f} {unit if unit != 'None' else ''}")
 
         with col2:
             st.markdown("### Option B")
-            st.write(f"**Expected Value (EV):** {ev_b:.4f}")
-            st.write(f"**Variance (Var):** {var_b:.4f}")
-            st.write(f"**Risk-adjusted score:** {score_b:.4f}")
+            st.write(f"**Expected Value (EV):** {ev_b:.2f} {unit if unit != 'None' else ''}")
+            st.write(f"**Variance (Var):** {var_b:.2f} {unit if unit != 'None' else ''}")
+            st.write(f"**Risk-adjusted score:** {score_b:.2f} {unit if unit != 'None' else ''}")
 
         st.divider()
         st.subheader("Recommendation")
