@@ -7,14 +7,51 @@ st.write("Answer a few questions and the app will compare **Option A vs Option B
 
 with st.expander("What do these terms mean? (click to expand)"):
     st.markdown(
-        """
-- **Outcome**: a possible result (e.g., +10€, 0€, -5€).
-- **Probability**: how likely that outcome is (all probabilities must sum to **1**).
-- **Expected Value (EV)**: the average result you’d get if you repeated the choice many times.
-- **Variance (Var)**: how “risky / spread out” the outcomes are.
-- **Risk aversion (λ)**: how much you penalize risk. Higher λ = you dislike uncertainty more.
-        """
-    )
+    """
+### Expected Value (EV)
+The **expected value** is the average result you would obtain if you could repeat the same decision many times.
+
+Example:
+- 50% chance of winning 10
+- 50% chance of winning 0  
+EV = 5
+
+This measures the **average payoff**, not the risk.
+
+---
+
+### Variance (Var)
+The **variance** measures how much outcomes fluctuate around the expected value.
+
+High variance = outcomes are very different from each other  
+Low variance = outcomes are similar or predictable
+
+Example:
+- Option A: 0 or 10 → higher variance
+- Option B: always 5 → variance = 0
+
+Even if EV is the same, people often prefer **lower variance**.
+
+Variance is a simple way to model **uncertainty / risk**.
+
+---
+
+### Risk aversion (λ)
+The parameter **λ (lambda)** represents how much you dislike risk.
+
+The model uses:
+
+Score = EV − λ · Var
+
+Meaning:
+- λ = 0 → you only care about EV (risk-neutral)
+- small λ → you slightly penalize risk
+- large λ → you strongly prefer safer outcomes
+
+This lets the same decision tool adapt to different personalities.
+"""
+)
+
 
 st.header("1) Define Option A")
 st.caption("Option A is the first choice you want to evaluate (e.g., job offer A, investment A, plan A).")
