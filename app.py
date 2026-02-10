@@ -68,13 +68,7 @@ if st.button("Compute"):
             st.write(f"**Variance (Var):** {var_b:.4f}")
             st.write(f"**Score:** {score_b:.4f}")
 
-        st.markdown("### Recommendation")
-        if score_a > score_b:
-            st.success("Pick **Option A** (higher risk-adjusted score).")
-        elif score_b > score_a:
-            st.success("Pick **Option B** (higher risk-adjusted score).")
-        else:
-            st.info("Tie: both options have the same score.")
+
 
         st.divider()
         st.subheader("Recommendation")
