@@ -1,8 +1,8 @@
 import streamlit as st
 from decision_model import risk_adjusted_score
 
-st.set_page_config(page_title="Decision Engine", page_icon="🎯")
-st.title("🎯 Decision Engine")
+st.set_page_config(page_title="Decision Engine")
+st.title("Decision Engine")
 st.write("Answer a few questions and the app will compare **Option A vs Option B** under uncertainty.")
 
 with st.expander("What do these terms mean? (click to expand)"):
