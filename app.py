@@ -1,94 +1,90 @@
+import re
 import streamlit as st
 from decision_model import risk_adjusted_score
 
 st.set_page_config(page_title="Decision Engine")
 st.title("Decision Engine")
-st.write("Answer a few questions and the app will compare **Option A vs Option B** under uncertainty.")
+st.write("Answer a few questions and the app will compare multiple options under uncertainty.")
 
+# ---------------------------
+# Helpers
+# ---------------------------
+def parse_list(s: str):
+    """Extract numbers from free text (supports €, $, words, etc.)."""
+    numbers = re.findall(r"-?(?:\d+\.?\d*|\.\d+)", s)
+    return [float(n) for n in numbers]
+
+def validate_probs(probs):
+    if len(probs) == 0:
+        return False, "Probabilities list is empty."
+    if any(p < 0 for p in probs):
+        return False, "Probabilities cannot be negative."
+    total = sum(probs)
+    if abs(total - 1.0) > 1e-6:
+        return False, f"Probabilities must sum to 1. Current sum = {total:.6f}"
+    return True, ""
+
+def fmt_unit(unit: str):
+    return "" if unit == "None" else unit
+
+# ---------------------------
+# Explanations
+# ---------------------------
 with st.expander("What do these terms mean? (click to expand)"):
     st.markdown(
-    """
+        """
 ### Expected Value (EV)
-The **expected value** is the average result you would obtain if you could repeat the same decision many times.
+The **expected value** is the average result you would obtain if you repeated the same decision many times.
 
 Example:
 - 50% chance of winning 10
 - 50% chance of winning 0  
 EV = 5
 
-This measures the **average payoff**, not the risk.
+EV measures the average payoff, not the risk.
 
 ---
 
 ### Variance (Var)
-The **variance** measures how much outcomes fluctuate around the expected value.
+Variance measures how unpredictable the outcomes are.
 
-High variance = outcomes are very different from each other  
-Low variance = outcomes are similar or predictable
+High variance → outcomes swing a lot  
+Low variance → outcomes are stable and predictable  
 
 Example:
-- Option A: 0 or 10 → higher variance
-- Option B: always 5 → variance = 0
+- 0 or 10 → higher variance  
+- always 5 → variance = 0
 
-Even if EV is the same, people often prefer **lower variance**.
-
-Variance is a simple way to model **uncertainty / risk**.
+Variance is used here as a simple proxy for uncertainty / risk.
 
 ---
 
 ### Risk aversion (λ)
-The parameter **λ (lambda)** represents how much you dislike risk.
-
-The model uses:
+Risk aversion controls how much you penalize uncertainty.
 
 Score = EV − λ · Var
 
-Meaning:
-- λ = 0 → you only care about EV (risk-neutral)
-- small λ → you slightly penalize risk
-- large λ → you strongly prefer safer outcomes
+- λ = 0 → only EV matters  
+- higher λ → safer options become more attractive
+        """
+    )
 
-This lets the same decision tool adapt to different personalities.
-"""
-)
+# ---------------------------
+# Global settings
+# ---------------------------
 unit = st.selectbox(
     "Unit of measure",
     ["None", "€", "$", "hours", "points"]
 )
+unit_display = fmt_unit(unit)
 
-st.header("1) Define Option A")
-st.caption("Option A is the first choice you want to evaluate (e.g., job offer A, investment A, plan A).")
-
-outcomes_a_str = st.text_input(
-    "A) Outcomes (comma-separated)",
-    value="10, 0",
-    help="You can include units like €, $, hours, etc. Example: '10€, 0€' or '10 hours, 0 hours'."
+num_options = st.number_input(
+    "How many options do you want to compare?",
+    min_value=2,
+    max_value=6,
+    value=2,
+    step=1
 )
-
-probs_a_str = st.text_input(
-    "A) Probabilities (comma-separated)",
-    value="0.5, 0.5",
-    help="You can include units like €, $, hours, etc. Example: '6€, 6€' means no uncertainty."
-)
-
-st.header("2) Define Option B")
-st.caption("Option B is the alternative choice you want to compare against Option A.")
-
-outcomes_b_str = st.text_input(
-    "B) Outcomes (comma-separated)",
-    value="6, 6",
-    help="Example: '6, 6' means the outcome is always 6 (no uncertainty)."
-)
-
-probs_b_str = st.text_input(
-    "B) Probabilities (comma-separated)",
-    value="1, 0",
-    help="Example: '1, 0' means the first outcome always happens."
-)
-
-st.header("3) How risk-averse are you?")
-
-
 
 risk_aversion = st.slider(
     "Risk aversion (λ)",
@@ -101,75 +97,106 @@ risk_aversion = st.slider(
 
 st.caption("Tip: Start with λ = 0.1. Try changing it to see how the recommendation changes.")
 
-import re
+# ---------------------------
+# Inputs for N options
+# ---------------------------
+st.divider()
+st.subheader("Define your options")
 
-def parse_list(s): 
-   numbers = re.findall(r"-?(?:\d+\.?\d*|\.\d+)", s)
-   return [float(n) for n in numbers]
+default_outcomes = ["10€, 0€", "6€, 6€", "12€, -2€", "8€, 3€", "15€, -5€", "5€, 5€"]
+default_probs = ["0.5, 0.5", "1, 0", "0.7, 0.3", "0.6, 0.4", "0.5, 0.5", "1, 0"]
 
+options_raw = []
 
-def validate_probs(probs):
-    if len(probs) == 0:
-        return False, "Probabilities list is empty."
-    if any(p < 0 for p in probs):
-        return False, "Probabilities cannot be negative."
-    total = sum(probs)
-    if abs(total - 1.0) > 1e-6:
-        return False, f"Probabilities must sum to 1. Current sum = {total:.6f}"
-    return True, ""
+for i in range(int(num_options)):
+    st.header(f"Option {i + 1}")
 
+    name = st.text_input(
+        f"Name (optional) for Option {i + 1}",
+        value=f"Option {i + 1}",
+        key=f"name_{i}",
+        help="Example: 'Job A', 'Investment B', 'Plan C'..."
+    )
+
+    outcomes_str = st.text_input(
+        f"Outcomes for {name} (comma-separated)",
+        value=default_outcomes[i] if i < len(default_outcomes) else "10, 0",
+        key=f"outcomes_{i}",
+        help="You can include units like €, $, hours, etc. Example: '10€, 0€' or '10 hours, 0 hours'."
+    )
+
+    probs_str = st.text_input(
+        f"Probabilities for {name} (comma-separated)",
+        value=default_probs[i] if i < len(default_probs) else "0.5, 0.5",
+        key=f"probs_{i}",
+        help="Probabilities must match outcomes length and sum to 1 (e.g., '0.5, 0.5')."
+    )
+
+    options_raw.append((name, outcomes_str, probs_str))
+
+# ---------------------------
+# Compute
+# ---------------------------
 if st.button("Compute"):
     try:
-        outcomes_a = parse_list(outcomes_a_str)
-        probs_a = parse_list(probs_a_str)
-        outcomes_b = parse_list(outcomes_b_str)
-        probs_b = parse_list(probs_b_str)
+        results = []
 
-        if len(outcomes_a) != len(probs_a):
-            st.error("Option A: outcomes and probabilities must have the same length.")
-            st.stop()
-        if len(outcomes_b) != len(probs_b):
-            st.error("Option B: outcomes and probabilities must have the same length.")
-            st.stop()
+        for idx, (name, outcomes_str, probs_str) in enumerate(options_raw, start=1):
+            outcomes = parse_list(outcomes_str)
+            probs = parse_list(probs_str)
 
-        ok_a, msg_a = validate_probs(probs_a)
-        ok_b, msg_b = validate_probs(probs_b)
-        if not ok_a:
-            st.error(f"Option A: {msg_a}")
-            st.stop()
-        if not ok_b:
-            st.error(f"Option B: {msg_b}")
-            st.stop()
+            if len(outcomes) != len(probs):
+                st.error(f"{name}: outcomes and probabilities must have the same length.")
+                st.stop()
 
-        ev_a, var_a, score_a = risk_adjusted_score(outcomes_a, probs_a, risk_aversion)
-        ev_b, var_b, score_b = risk_adjusted_score(outcomes_b, probs_b, risk_aversion)
+            ok, msg = validate_probs(probs)
+            if not ok:
+                st.error(f"{name}: {msg}")
+                st.stop()
+
+            ev, var, score = risk_adjusted_score(outcomes, probs, risk_aversion)
+            results.append(
+                {
+                    "Option": name,
+                    "EV": ev,
+                    "Var": var,
+                    "Score": score,
+                }
+            )
+
+        # Sort by score descending
+        results_sorted = sorted(results, key=lambda r: r["Score"], reverse=True)
 
         st.divider()
-        st.subheader("Results")
+        st.subheader("Results (sorted by score)")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### Option A")
-            st.write(f"**Expected Value (EV):** {ev_a:.2f} {unit if unit != 'None' else ''}")
-            st.write(f"**Variance (Var):** {var_a:.2f} {unit if unit != 'None' else ''}")
-            st.write(f"**Risk-adjusted score:** {score_a:.2f} {unit if unit != 'None' else ''}")
+        # Display: keep EV/Score with unit, Var without unit for clarity
+        display_rows = []
+        for r in results_sorted:
+            display_rows.append(
+                {
+                    "Option": r["Option"],
+                    f"EV {unit_display}".strip(): round(r["EV"], 2),
+                    "Var": round(r["Var"], 2),
+                    f"Score {unit_display}".strip(): round(r["Score"], 2),
+                }
+            )
 
-        with col2:
-            st.markdown("### Option B")
-            st.write(f"**Expected Value (EV):** {ev_b:.2f} {unit if unit != 'None' else ''}")
-            st.write(f"**Variance (Var):** {var_b:.2f} {unit if unit != 'None' else ''}")
-            st.write(f"**Risk-adjusted score:** {score_b:.2f} {unit if unit != 'None' else ''}")
+        st.dataframe(display_rows, use_container_width=True)
 
+        # Recommendation
         st.divider()
         st.subheader("Recommendation")
-        if score_a > score_b:
-            st.success("Pick **Option A** (higher risk-adjusted score).")
-        elif score_b > score_a:
-            st.success("Pick **Option B** (higher risk-adjusted score).")
-        else:
-            st.info("Both options have the same score.")
 
-        st.caption("The score is computed as: Score = EV − λ · Var")
+        best = results_sorted[0]
+        # Tie handling: if top 2 are extremely close
+        if len(results_sorted) >= 2 and abs(results_sorted[0]["Score"] - results_sorted[1]["Score"]) < 1e-9:
+            st.info("Tie: multiple options have the same score.")
+        else:
+            st.success(f"Best choice: **{best['Option']}** (highest risk-adjusted score).")
+
+        st.caption("Model: Score = EV − λ · Var")
 
     except ValueError:
         st.error("Please enter valid numbers separated by commas (e.g., 10, 0).")
+
