@@ -59,13 +59,13 @@ st.caption("Option A is the first choice you want to evaluate (e.g., job offer A
 outcomes_a_str = st.text_input(
     "A) Outcomes (comma-separated)",
     value="10, 0",
-    help="Example: '10, 0' means either you get 10 or you get 0."
+    help="You can include units like €, $, hours, etc. Example: '10€, 0€' or '10 hours, 0 hours'."
 )
 
 probs_a_str = st.text_input(
     "A) Probabilities (comma-separated)",
     value="0.5, 0.5",
-    help="Probabilities must match the outcomes and sum to 1. Example: '0.5, 0.5'."
+    help="You can include units like €, $, hours, etc. Example: '6€, 6€' means no uncertainty."
 )
 
 st.header("2) Define Option B")
@@ -95,8 +95,12 @@ risk_aversion = st.slider(
 
 st.caption("Tip: Start with λ = 0.1. Try changing it to see how the recommendation changes.")
 
-def parse_list(s: str):
-    return [float(x.strip()) for x in s.split(",") if x.strip()]
+import re
+
+def parse_list(s): 
+   numbers = re.findall(r"-?(?:\d+\.?\d*|\.\d+)", s)
+   return [float(n) for n in numbers]
+
 
 def validate_probs(probs):
     if len(probs) == 0:
