@@ -76,5 +76,16 @@ if st.button("Compute"):
         else:
             st.info("Tie: both options have the same score.")
 
+        st.divider()
+        st.subheader("Recommendation")
+
+        if score_a > score_b:
+            st.success("Option A has the higher risk-adjusted score.")
+        elif score_b > score_a:
+            st.success("Option B has the higher risk-adjusted score.")
+        else:
+            st.info("Both options have the same score.")
+
+
     except ValueError:
         st.error("Please enter valid numbers separated by commas (e.g., 10, 0).")
