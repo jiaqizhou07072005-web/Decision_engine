@@ -71,7 +71,7 @@ def results_to_csv_bytes(rows):
 # ---------------------------
 init_state()
 
-st.title("🎯 Decision Engine")
+st.title("Decision Engine")
 st.write("A mini decision-support product to compare multiple options under uncertainty.")
 
 # ---------------------------
