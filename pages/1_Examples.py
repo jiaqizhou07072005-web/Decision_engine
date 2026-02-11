@@ -37,6 +37,6 @@ def load_payload(payload):
         st.session_state[f"probs_{i}"] = opt["probs"]
 
 for title, payload in examples.items():
-    if st.button(f"Load: {title}", use_container_width=True):
+    if st.button(f"Load: {title}", use_container_width=True, key=f"load_example_{title}"):
         load_payload(payload)
         st.success("Loaded. Now go back to the **Decision Engine** page and press Compute.")

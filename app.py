@@ -106,7 +106,7 @@ st.sidebar.number_input(
 st.sidebar.divider()
 st.sidebar.subheader("Scenarios")
 
-scenario_name = st.sidebar.text_input("Scenario name", value="My scenario")
+scenario_name = st.sidebar.text_input("Scenario name", value="My scenario", key="scenario_name")
 
 col_save, col_load = st.sidebar.columns(2)
 with col_save:
