@@ -282,7 +282,7 @@ if st.button("Compute", type="primary", key="compute"):
             data=csv_bytes,
             file_name="decision_engine_results.csv",
             mime="text/csv",
-            key="download_results_csv"
+            key="download_results_csv_main"
         )
 
     except ValueError:
