@@ -127,7 +127,7 @@ st.sidebar.subheader("Import / Export")
 st.sidebar.divider()
 st.sidebar.subheader("Reset")
 
-if st.sidebar.button("Clear all", key="clear all"):
+if st.sidebar.button("Clear all", key="clear_all"):
     for key in list(st.session_state.keys()):
         if key.startswith(("name_", "outcomes_", "probs_")):
             del st.session_state[key]
@@ -250,6 +250,7 @@ if st.button("Compute", type="primary", key="compute"):
                 "Var": round(var, 2),
                 "Score": round(score, 2)
             })
+
         # Sort by Score
         results_sorted = sorted(results, key=lambda r: r["Score"], reverse=True)
         st.session_state.last_results = results_sorted
@@ -257,7 +258,7 @@ if st.button("Compute", type="primary", key="compute"):
         st.divider()
         st.subheader("Results (sorted by score)")
 
-        # Display table with units on EV/Score
+        # Build display rows ONCE
         display_rows = []
         for r in results_sorted:
             display_rows.append({
@@ -267,17 +268,18 @@ if st.button("Compute", type="primary", key="compute"):
                 f"Score {u}".strip(): r["Score"],
             })
 
-            st.dataframe(display_rows, use_container_width=True)
+        # Show table ONCE (outside the loop)
+        st.dataframe(display_rows, use_container_width=True)
 
-            st.divider()
-            st.subheader("Recommendation")
-            best = results_sorted[0]
-            st.success(f"Best choice: **{best['Option']}** (highest risk-adjusted score).")
-            st.caption("Model: Score = EV − λ · Var")
+        st.divider()
+        st.subheader("Recommendation")
+        best = results_sorted[0]
+        st.success(f"Best choice: **{best['Option']}** (highest risk-adjusted score).")
+        st.caption("Model: Score = EV − λ · Var")
 
-                # Export CSV of results
-            csv_bytes = results_to_csv_bytes(display_rows)
-            st.download_button(
+        # Export CSV ONCE (outside the loop)
+        csv_bytes = results_to_csv_bytes(display_rows)
+        st.download_button(
             "Download results (CSV)",
             data=csv_bytes,
             file_name="decision_engine_results.csv",
@@ -287,3 +289,4 @@ if st.button("Compute", type="primary", key="compute"):
 
     except ValueError:
         st.error("Please enter valid numbers separated by commas (e.g., 10, 0).")
+
