@@ -110,7 +110,7 @@ scenario_name = st.sidebar.text_input("Scenario name", value="My scenario")
 
 col_save, col_load = st.sidebar.columns(2)
 with col_save:
-    if st.button("Save", use_container_width=True):
+    if st.button("Save", use_container_width=True, key="save_scenario"):
         payload = get_current_payload(st.session_state.num_options)
         st.session_state.scenarios[scenario_name] = payload
         st.sidebar.success("Saved.")
@@ -118,7 +118,7 @@ with col_save:
 with col_load:
     scenario_list = ["—"] + sorted(st.session_state.scenarios.keys())
     chosen = st.selectbox("Load", scenario_list, key="scenario_to_load", label_visibility="collapsed")
-    if chosen != "—" and st.button("Apply", use_container_width=True):
+    if chosen != "—" and st.button("Apply", use_container_width=True, key="apply_scenario"):
         load_payload(st.session_state.scenarios[chosen])
         st.sidebar.success("Loaded.")
 
@@ -127,7 +127,7 @@ st.sidebar.subheader("Import / Export")
 st.sidebar.divider()
 st.sidebar.subheader("Reset")
 
-if st.sidebar.button("Clear all"):
+if st.sidebar.button("Clear all", key="clear all"):
     for key in list(st.session_state.keys()):
         if key.startswith(("name_", "outcomes_", "probs_")):
             del st.session_state[key]
@@ -142,14 +142,21 @@ if st.sidebar.button("Clear all"):
 # Export current scenario JSON
 payload_json = json.dumps(get_current_payload(st.session_state.num_options), indent=2)
 st.sidebar.download_button(
-    "Download scenario (.json)",
-    data=payload_json.encode("utf-8"),
-    file_name="decision_engine_scenario.json",
-    mime="application/json",
-    use_container_width=True
+        "Download scenario (.json)",
+        data=payload_json.encode("utf-8"),
+        file_name="decision_engine_scenario.json",
+        mime="application/json",
+        use_container_width=True,
+        key="download_scenario_json"
+        ) 
+
+
+uploaded = st.sidebar.file_uploader(
+    "Import scenario (.json)",
+    type=["json"],
+    key="upload_scenario_json"
 )
 
-uploaded = st.sidebar.file_uploader("Import scenario (.json)", type=["json"])
 if uploaded is not None:
     try:
         imported = json.load(uploaded)
@@ -216,7 +223,7 @@ for i in range(int(st.session_state.num_options)):
     # ---------------------------
     # Compute + Output
     # ---------------------------
-if st.button("Compute", type="primary"):
+if st.button("Compute", type="primary", key="compute"):
     try:
         results = []
         u = unit_display(st.session_state.unit)
