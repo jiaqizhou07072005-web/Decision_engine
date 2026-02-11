@@ -5,7 +5,7 @@ import csv
 import streamlit as st
 from decision_model import risk_adjusted_score
 
-st.set_page_config(page_title="Decision Engine", page_icon="🎯", layout="wide")
+st.set_page_config(page_title="Decision Engine", layout="wide")
 
 # ---------------------------
 # Helpers
