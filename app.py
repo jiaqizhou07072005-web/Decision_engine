@@ -271,10 +271,12 @@ if st.button("Compute", type="primary"):
                 # Export CSV of results
             csv_bytes = results_to_csv_bytes(display_rows)
             st.download_button(
-                "Download results (CSV)",
-                data=csv_bytes,
-                file_name="decision_engine_results.csv",
-                mime="text/csv"
-            )
+            "Download results (CSV)",
+            data=csv_bytes,
+            file_name="decision_engine_results.csv",
+            mime="text/csv",
+            key="download_results_csv"
+        )
+
     except ValueError:
         st.error("Please enter valid numbers separated by commas (e.g., 10, 0).")
